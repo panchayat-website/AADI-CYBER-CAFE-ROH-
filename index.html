@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Hacker Terminal</title>
+
+<style>
+    body {
+        margin: 0;
+        background: black;
+        color: #00ff41;
+        font-family: "Courier New", monospace;
+        overflow: hidden;
+    }
+
+    canvas {
+        position: fixed;
+        top: 0;
+        left: 0;
+        z-index: 0;
+    }
+
+    .terminal {
+        position: relative;
+        z-index: 1;
+        padding: 20px;
+        height: 100vh;
+        overflow: hidden;
+        white-space: pre-wrap;
+        font-size: 16px;
+    }
+
+    .cursor {
+        display: inline-block;
+        width: 10px;
+        background: #00ff41;
+        animation: blink 1s infinite;
+    }
+
+    @keyframes blink {
+        0%, 50%, 100% { opacity: 1; }
+        25%, 75% { opacity: 0; }
+    }
+</style>
+</head>
+<body>
+
+<canvas id="matrix"></canvas>
+
+<div class="terminal" id="terminal"></div>
+
+<script>
+/* ================= MATRIX RAIN BACKGROUND ================= */
+const canvas = document.getElementById("matrix");
+const ctx = canvas.getContext("2d");
+
+canvas.height = window.innerHeight;
+canvas.width = window.innerWidth;
+
+const letters = "01ABCDEFGHIJKLMNOPQRSTUVWXYZ#$%&@";
+const fontSize = 14;
+const columns = canvas.width / fontSize;
+const drops = [];
+
+for (let i = 0; i < columns; i++) {
+    drops[i] = 1;
+}
+
+function drawMatrix() {
+    ctx.fillStyle = "rgba(0, 0, 0, 0.05)";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    ctx.fillStyle = "#00ff41";
+    ctx.font = fontSize + "px monospace";
+
+    for (let i = 0; i < drops.length; i++) {
+        const text = letters[Math.floor(Math.random() * letters.length)];
+        ctx.fillText(text, i * fontSize, drops[i] * fontSize);
+
+        if (drops[i] * fontSize > canvas.height && Math.random() > 0.975)
+            drops[i] = 0;
+
+        drops[i]++;
+    }
+}
+
+setInterval(drawMatrix, 33);
+
+/* ================= TERMINAL AUTO CODING ================= */
+const terminal = document.getElementById("terminal");
+
+const codeLines = [
+"Initializing secure connection...",
+"Bypassing firewall...",
+"Accessing encrypted node...",
+"Decrypting data packets...",
+"Injecting payload...",
+"Compiling exploit...",
+"Escalating privileges...",
+"Access Granted.",
+"",
+"function infiltrate(system) {",
+"    while(system.security > 0) {",
+"        system.security--;",
+"        override(system.firewall);",
+"    }",
+"    return 'Root Access Achieved';",
+"}",
+"",
+"const target = locateTarget('mainframe');",
+"let result = infiltrate(target);",
+"console.log(result);",
+"",
+"// Scanning network ports...",
+"// Establishing backdoor...",
+"// Uploading virus.exe...",
+"// Encrypting logs...",
+"// Masking IP address...",
+"",
+">>> SYSTEM OVERRIDE COMPLETE <<<",
+""
+];
+
+let lineIndex = 0;
+let charIndex = 0;
+
+function typeCode() {
+    if (lineIndex >= codeLines.length) {
+        lineIndex = 0; // Restart from top = infinite loop
+    }
+
+    let currentLine = codeLines[lineIndex];
+    terminal.innerHTML =
+        terminal.innerHTML.replace('<span class="cursor"></span>', '') +
+        currentLine.charAt(charIndex) +
+        '<span class="cursor"></span>';
+
+    charIndex++;
+
+    if (charIndex >= currentLine.length) {
+        terminal.innerHTML =
+            terminal.innerHTML.replace('<span class="cursor"></span>', '') +
+            "\n<span class='cursor'></span>";
+        charIndex = 0;
+        lineIndex++;
+    }
+
+    terminal.scrollTop = terminal.scrollHeight;
+}
+
+setInterval(typeCode, 40);
+
+/* ============== RESPONSIVE FIX ============== */
+window.addEventListener("resize", () => {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+});
+</script>
+
+</body>
+</html>
