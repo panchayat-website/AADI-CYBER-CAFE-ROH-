@@ -1,162 +1,229 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Hacker Terminal</title>
+<meta charset="UTF-8">
+<title>Root Access Terminal</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
-    body {
-        margin: 0;
-        background: black;
-        color: #00ff41;
-        font-family: "Courier New", monospace;
-        overflow: hidden;
-    }
+body {
+    margin: 0;
+    background: black;
+    color: #00ff41;
+    font-family: monospace;
+    overflow: hidden;
+}
 
-    canvas {
-        position: fixed;
-        top: 0;
-        left: 0;
-        z-index: 0;
-    }
+/* MATRIX CANVAS */
+canvas {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 0;
+}
 
-    .terminal {
-        position: relative;
-        z-index: 1;
-        padding: 20px;
-        height: 100vh;
-        overflow: hidden;
-        white-space: pre-wrap;
-        font-size: 16px;
-    }
+/* LAYOUT */
+.container {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    height: 100vh;
+    padding: 20px;
+    gap: 15px;
+}
 
-    .cursor {
-        display: inline-block;
-        width: 10px;
-        background: #00ff41;
-        animation: blink 1s infinite;
-    }
+.panel {
+    background: rgba(0, 20, 0, 0.6);
+    border: 1px solid #00ff41;
+    padding: 15px;
+    overflow: hidden;
+    box-shadow: 0 0 15px #00ff41;
+}
 
-    @keyframes blink {
-        0%, 50%, 100% { opacity: 1; }
-        25%, 75% { opacity: 0; }
-    }
+h1 {
+    text-align: center;
+    margin: 0 0 10px;
+    font-size: 20px;
+    animation: glitch 1s infinite;
+}
+
+@keyframes glitch {
+    0% { text-shadow: 2px 0 red; }
+    25% { text-shadow: -2px 0 blue; }
+    50% { text-shadow: 2px 0 lime; }
+    75% { text-shadow: -2px 0 cyan; }
+    100% { text-shadow: 2px 0 red; }
+}
+
+.terminal, .logs {
+    height: 70%;
+    overflow-y: auto;
+    white-space: pre-wrap;
+    font-size: 14px;
+}
+
+.stats {
+    font-size: 13px;
+    line-height: 1.6;
+    margin-top: 10px;
+}
+
+.progress {
+    width: 100%;
+    background: #002200;
+    border: 1px solid #00ff41;
+    height: 18px;
+    margin-top: 5px;
+}
+
+.progress-bar {
+    height: 100%;
+    width: 0%;
+    background: #00ff41;
+}
 </style>
 </head>
 <body>
 
 <canvas id="matrix"></canvas>
 
-<div class="terminal" id="terminal"></div>
+<div class="container">
+    <div class="panel">
+        <h1>ROOT ACCESS TERMINAL</h1>
+        <div class="terminal" id="terminal"></div>
+
+        <div class="stats" id="stats"></div>
+
+        <div>Password Cracking Progress</div>
+        <div class="progress"><div class="progress-bar" id="bar"></div></div>
+    </div>
+
+    <div class="panel">
+        <h1>NETWORK LOGS</h1>
+        <div class="logs" id="logs"></div>
+    </div>
+</div>
 
 <script>
-/* ================= MATRIX RAIN BACKGROUND ================= */
+/* ================= MATRIX RAIN ================= */
 const canvas = document.getElementById("matrix");
 const ctx = canvas.getContext("2d");
-
-canvas.height = window.innerHeight;
 canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
 
-const letters = "01ABCDEFGHIJKLMNOPQRSTUVWXYZ#$%&@";
+const chars = "01ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 const fontSize = 14;
 const columns = canvas.width / fontSize;
-const drops = [];
-
-for (let i = 0; i < columns; i++) {
-    drops[i] = 1;
-}
+const drops = Array(Math.floor(columns)).fill(1);
 
 function drawMatrix() {
-    ctx.fillStyle = "rgba(0, 0, 0, 0.05)";
+    ctx.fillStyle = "rgba(0,0,0,0.05)";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
-
     ctx.fillStyle = "#00ff41";
     ctx.font = fontSize + "px monospace";
 
-    for (let i = 0; i < drops.length; i++) {
-        const text = letters[Math.floor(Math.random() * letters.length)];
-        ctx.fillText(text, i * fontSize, drops[i] * fontSize);
-
-        if (drops[i] * fontSize > canvas.height && Math.random() > 0.975)
-            drops[i] = 0;
-
+    drops.forEach((y, i) => {
+        const text = chars[Math.floor(Math.random() * chars.length)];
+        ctx.fillText(text, i * fontSize, y * fontSize);
+        if (y * fontSize > canvas.height && Math.random() > 0.975) drops[i] = 0;
         drops[i]++;
-    }
+    });
 }
+setInterval(drawMatrix, 35);
 
-setInterval(drawMatrix, 33);
-
-/* ================= TERMINAL AUTO CODING ================= */
+/* ================= TERMINAL TYPING ================= */
 const terminal = document.getElementById("terminal");
-
-const codeLines = [
-"Initializing secure connection...",
+const code = [
+"Connecting to target server...",
+"IP Located: 192.168." + Math.floor(Math.random()*255) + "." + Math.floor(Math.random()*255),
 "Bypassing firewall...",
-"Accessing encrypted node...",
-"Decrypting data packets...",
-"Injecting payload...",
-"Compiling exploit...",
-"Escalating privileges...",
-"Access Granted.",
-"",
-"function infiltrate(system) {",
-"    while(system.security > 0) {",
-"        system.security--;",
-"        override(system.firewall);",
-"    }",
-"    return 'Root Access Achieved';",
-"}",
-"",
-"const target = locateTarget('mainframe');",
-"let result = infiltrate(target);",
-"console.log(result);",
-"",
-"// Scanning network ports...",
-"// Establishing backdoor...",
-"// Uploading virus.exe...",
-"// Encrypting logs...",
-"// Masking IP address...",
-"",
-">>> SYSTEM OVERRIDE COMPLETE <<<",
+"Injecting exploit payload...",
+"Accessing root directory...",
+"Decrypting secure files...",
+"Privilege escalation successful.",
+"Establishing persistence...",
+"Uploading backdoor...",
+"Cleaning logs...",
+">>> ROOT ACCESS GRANTED <<<",
 ""
 ];
 
-let lineIndex = 0;
-let charIndex = 0;
+let li = 0, ci = 0;
+function typeTerminal() {
+    if (li >= code.length) li = 0;
+    let line = code[li];
 
-function typeCode() {
-    if (lineIndex >= codeLines.length) {
-        lineIndex = 0; // Restart from top = infinite loop
+    terminal.textContent += line.charAt(ci);
+    ci++;
+
+    if (ci >= line.length) {
+        terminal.textContent += "\n";
+        ci = 0;
+        li++;
     }
-
-    let currentLine = codeLines[lineIndex];
-    terminal.innerHTML =
-        terminal.innerHTML.replace('<span class="cursor"></span>', '') +
-        currentLine.charAt(charIndex) +
-        '<span class="cursor"></span>';
-
-    charIndex++;
-
-    if (charIndex >= currentLine.length) {
-        terminal.innerHTML =
-            terminal.innerHTML.replace('<span class="cursor"></span>', '') +
-            "\n<span class='cursor'></span>";
-        charIndex = 0;
-        lineIndex++;
-    }
-
     terminal.scrollTop = terminal.scrollHeight;
 }
+setInterval(typeTerminal, 30);
 
-setInterval(typeCode, 40);
+/* ================= SIDE LOGS ================= */
+const logs = document.getElementById("logs");
+function randomIP() {
+    return `${rand(1,255)}.${rand(0,255)}.${rand(0,255)}.${rand(0,255)}`;
+}
+function rand(min,max){return Math.floor(Math.random()*(max-min+1))+min;}
 
-/* ============== RESPONSIVE FIX ============== */
+const logLines = [
+"Scanning IP:",
+"Port 443 OPEN",
+"Port 22 OPEN",
+"Brute force attempt...",
+"Access denied, retrying...",
+"Handshake established",
+"Proxy tunnel created",
+"Data packet intercepted",
+"Encrypting tunnel",
+"Trace route masked"
+];
+
+function addLog() {
+    logs.textContent += logLines[Math.floor(Math.random()*logLines.length)] 
+        + " " + randomIP() + "\n";
+    logs.scrollTop = logs.scrollHeight;
+}
+setInterval(addLog, 800);
+
+/* ================= FAKE SYSTEM STATS ================= */
+const stats = document.getElementById("stats");
+function updateStats() {
+    stats.innerHTML =
+        "CPU Usage: " + rand(20,95) + "%<br>" +
+        "RAM Usage: " + rand(30,90) + "%<br>" +
+        "Network Traffic: " + rand(100,900) + " MB/s<br>" +
+        "Active Connections: " + rand(50,400);
+}
+setInterval(updateStats, 1000);
+
+/* ================= PASSWORD CRACK PROGRESS ================= */
+const bar = document.getElementById("bar");
+let progress = 0;
+function updateProgress() {
+    progress += Math.random() * 5;
+    if (progress >= 100) progress = 0;
+    bar.style.width = progress + "%";
+}
+setInterval(updateProgress, 200);
+
+/* ================= SOUND EFFECT ================= */
+const beep = new Audio("https://actions.google.com/sounds/v1/alarms/beep_short.ogg");
+setInterval(()=>{ if(Math.random()>0.7) beep.play(); }, 3000);
+
+/* RESPONSIVE */
 window.addEventListener("resize", () => {
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
 });
 </script>
-
 </body>
 </html>
+
